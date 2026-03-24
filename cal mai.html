@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRON-CALC | Fitness Tracker</title>
+    <style>
+        /* CSS: Fitness Dark Theme */
+        :root {
+            --primary-neon: #ccff00; /* Neon Green */
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+            --text-light: #ffffff;
+            --input-bg: #2d2d2d;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                              url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1470');
+            background-size: cover;
+            background-position: center;
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid #333;
+        }
+
+        h2 {
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            color: var(--primary-neon);
+            border-bottom: 2px solid var(--primary-neon);
+            display: inline-block;
+            width: 100%;
+            padding-bottom: 10px;
+        }
+
+        .input-group { margin-bottom: 1.5rem; }
+        label { 
+            display: block; 
+            margin-bottom: 0.6rem; 
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #aaa;
+        }
+        
+        .row { display: flex; gap: 8px; }
+
+        input, select {
+            background: var(--input-bg);
+            border: 1px solid #444;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-neon);
+        }
+
+        input { flex: 2; }
+        select { flex: 1; cursor: pointer; }
+        .full-width { width: 100%; box-sizing: border-box; }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-neon);
+            border: none;
+            color: #000;
+            font-size: 1.1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #b3e600;
+            transform: translateY(-2px);
+        }
+
+        button:active { transform: translateY(0); }
+
+        #result-card {
+            margin-top: 25px;
+            padding: 20px;
+            background: #252525;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+            border-left: 5px solid var(--primary-neon);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .kcal-val {
+            font-size: 2.5rem;
+            display: block;
+            color: var(--primary-neon);
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Fuel Calculator</h2>
+    
+    <div class="input-group">
+        <label>Biological Gender</label>
+        <select id="gender" class="full-width">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>Your Age</label>
+        <input type="number" id="age" placeholder="Years" class="full-width">
+    </div>
+
+    <div class="input-group">
+        <label>Current Weight</label>
+        <div class="row">
+            <input type="number" id="weight" placeholder="Value">
+            <select id="weightUnit">
+                <option value="kg">KG</option>
+                <option value="lb">LBS</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>Current Height</label>
+        <div class="row">
+            <input type="number" id="height" placeholder="Value" step="0.01">
+            <select id="heightUnit">
+                <option value="cm">CM</option>
+                <option value="ft">FT</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>Activity Intensity</label>
+        <select id="activity" class="full-width">
+            <option value="1.2">Sedentary (Low)</option>
+            <option value="1.375">Light (1-2 days/wk)</option>
+            <option value="1.55">Moderate (3-5 days/wk)</option>
+            <option value="1.725">High (6-7 days/wk)</option>
+            <option value="1.9">Elite (Pro Athlete)</option>
+        </select>
+    </div>
+
+    <button onclick="calculate()">Calculate Daily Intake</button>
+
+    <div id="result-card">
+        <span style="font-size: 0.9rem; text-transform: uppercase; color: #888;">Maintenance Level</span>
+        <span class="kcal-val" id="kcalDisplay">0</span>
+        <span style="font-size: 0.9rem; color: #888;">Calories / Day</span>
+    </div>
+</div>
+
+<script>
+    function calculate() {
+        const gender = document.getElementById('gender').value;
+        const age = parseFloat(document.getElementById('age').value);
+        let weight = parseFloat(document.getElementById('weight').value);
+        let height = parseFloat(document.getElementById('height').value);
+        const weightUnit = document.getElementById('weightUnit').value;
+        const heightUnit = document.getElementById('heightUnit').value;
+        const activity = parseFloat(document.getElementById('activity').value);
+
+        if (!age || !weight || !height) {
+            alert("Please input all metrics to proceed.");
+            return;
+        }
+
+        // Unit Conversion Logic
+        if (weightUnit === 'lb') weight /= 2.20462;
+        if (heightUnit === 'ft') height *= 30.48;
+
+        // Mifflin-St Jeor Formula
+        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+        bmr = (gender === 'male') ? bmr + 5 : bmr - 161;
+
+        const tdee = Math.round(bmr * activity);
+
+        // Display with Animation
+        const card = document.getElementById('result-card');
+        const display = document.getElementById('kcalDisplay');
+        
+        card.style.display = 'block';
+        display.innerText = tdee.toLocaleString();
+    }
+</script>
+
+</body>
+</html>
